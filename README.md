@@ -1,2 +1,2 @@
 # scoop-clink-completion
-Clink completion file for lukesampson/scoop.
+Clink completion file for [Scoop](https://scoop.sh/).
