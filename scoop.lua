@@ -7,6 +7,14 @@ local function trim_extensions (apps)
 	return apps
 end
 
+local function find_dirs (path)
+	result = clink.find_dirs(path)
+	-- Remove .. and . from table of directories
+	table.remove(result, 1)
+	table.remove(result, 1)
+	return result
+end
+
 local function exec_result_table (command)
 	result = {}
 	stream = assert (io.popen(command))
@@ -17,26 +25,33 @@ local function exec_result_table (command)
 	return result
 end
 
-local buckets_local = clink.find_dirs(scoop_dir..'/buckets/*')
-table.remove(buckets_local, 1)
-table.remove(buckets_local, 1)
+local Buckets = {}
 
-local buckets_remote = exec_result_table('scoop bucket known')
+function Buckets.get_local ()
+	return find_dirs(scoop_dir..'/buckets/*')
+end
 
-local apps = trim_extensions(clink.find_files(scoop_dir..'/apps/scoop/current/bucket/*.json'))
-for k, dir in pairs(buckets_local) do
-	for u, app in pairs(trim_extensions(clink.find_files(scoop_dir..'/buckets/'..dir..'/*.json'))) do
-		table.insert(apps, app)
+function Buckets.get_remote ()
+	return exec_result_table('scoop bucket known')
+end
+
+local function apps ()
+	apps = trim_extensions(clink.find_files(scoop_dir..'/apps/scoop/current/bucket/*.json'))
+	for _, dir in pairs(Buckets.getLocal()) do
+		for u, app in pairs(trim_extensions(clink.find_files(scoop_dir..'/buckets/'..dir..'/*.json'))) do
+			table.insert(apps, app)
+		end
 	end
+	return apps
 end
 
 local parser = clink.arg.new_parser
 
 local scoop_parser = parser(
 	{
-		{'install', 'info', 'uninstall', 'cleanup', 'update', 'prefix', 'reset', 'depends', 'virustotal'}..parser(apps),
+		{'install', 'info', 'uninstall', 'cleanup', 'update', 'prefix', 'reset', 'depends', 'virustotal'}	..parser({apps}),
 		'alias' 	..parser({'add', 'list', 'rm'}),
-		'bucket'	..parser({'add'..parser(buckets_remote), 'list', 'known', 'rm'..parser(buckets_local)}),
+		'bucket'	..parser({'add'..parser({Buckets.get_remote}), 'list', 'known', 'rm'..parser({Buckets.get_local})}),
 		'cache',
 		'checkup',
 		'config',
