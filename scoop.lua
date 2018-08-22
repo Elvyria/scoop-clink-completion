@@ -37,7 +37,7 @@ end
 
 local function apps ()
 	apps = trim_extensions(clink.find_files(scoop_dir..'/apps/scoop/current/bucket/*.json'))
-	for _, dir in pairs(Buckets.getLocal()) do
+	for _, dir in pairs(Buckets.get_local()) do
 		for u, app in pairs(trim_extensions(clink.find_files(scoop_dir..'/buckets/'..dir..'/*.json'))) do
 			table.insert(apps, app)
 		end
