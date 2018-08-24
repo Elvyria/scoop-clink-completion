@@ -2,7 +2,8 @@
 Clink completion file for [Scoop](https://scoop.sh/).
 
 Allows you to complete bucket | app | command names.
-<img src="https://raw.githubusercontent.com/Elvyria/scoop-clink-completion/master/completion.gif" height="350">
+
+<img src="https://raw.githubusercontent.com/Elvyria/scoop-clink-completion/master/completion.gif" height="450">
 
 
 ## Installation
