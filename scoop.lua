@@ -35,7 +35,13 @@ function Buckets.get_remote ()
 	return exec_result_table('scoop bucket known')
 end
 
-local function apps ()
+local Apps = {}
+
+function Apps.get_local ()
+	return find_dirs(scoop_dir..'/apps/*')
+end
+
+function Apps.get_remote ()
 	apps = trim_extensions(clink.find_files(scoop_dir..'/apps/scoop/current/bucket/*.json'))
 	for _, dir in pairs(Buckets.get_local()) do
 		for u, app in pairs(trim_extensions(clink.find_files(scoop_dir..'/buckets/'..dir..'/*.json'))) do
@@ -49,7 +55,8 @@ local parser = clink.arg.new_parser
 
 local scoop_parser = parser(
 	{
-		{'install', 'info', 'uninstall', 'cleanup', 'update', 'prefix', 'reset', 'depends', 'virustotal'}	..parser({apps}),
+		{'install', 'info', 'depends', 'virustotal'}		..parser({Apps.get_remote}),
+		{'uninstall', 'cleanup', 'update', 'prefix', 'reset'}	..parser({Apps.get_local}),
 		'alias' 	..parser({'add', 'list', 'rm'}),
 		'bucket'	..parser({'add'..parser({Buckets.get_remote}), 'list', 'known', 'rm'..parser({Buckets.get_local})}),
 		'cache',
