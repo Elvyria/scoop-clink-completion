@@ -53,10 +53,10 @@ local parser = clink.arg.new_parser
 
 local scoop_parser = parser(
 	{
-		{'install', 'info', 'depends', 'virustotal'}		..parser({Apps.get_known}),
-		{'uninstall', 'cleanup', 'update', 'prefix', 'reset'}	..parser({Apps.get_local}),
-		'alias' 	..parser({'add', 'list', 'rm'}),
-		'bucket'	..parser({'add'..parser({Buckets.get_known}), 'list', 'known', 'rm'..parser({Buckets.get_local})}),
+		{'install', 'info', 'depends', 'virustotal'} ..parser({Apps.get_known}):loop(0),
+		{'uninstall', 'cleanup', 'update', 'prefix', 'reset'} ..parser({Apps.get_local}):loop(0),
+		'alias' ..parser({'add', 'list', 'rm'}),
+		'bucket' ..parser({'add' ..parser({Buckets.get_known}), 'list', 'known', 'rm' ..parser({Buckets.get_local})}),
 		'cache',
 		'checkup',
 		'config',
@@ -71,4 +71,11 @@ local scoop_parser = parser(
 	}
 )
 
+local help_parser = parser(
+	{
+        'help' .. parser(scoop_parser:flatten_argument(1))
+	}
+)
+
 clink.arg.register_parser('scoop', scoop_parser)
+clink.arg.register_parser('scoop', help_parser)
