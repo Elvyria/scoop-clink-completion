@@ -15,6 +15,17 @@ local function find_dirs (path)
 	return dirs
 end
 
+local function get_cache ()
+	cache = clink.find_files(scoop_dir..'/cache/*')
+	-- Remove .. and . from table of directories
+	table.remove(cache, 1)
+	table.remove(cache, 1)
+	for i, name in pairs(cache) do
+		cache[i] = string.sub(name, 0, string.find(name, "#") - 1)
+	end
+	return cache
+end
+
 local Buckets = {}
 
 function Buckets.get_local ()
@@ -51,31 +62,47 @@ end
 
 local parser = clink.arg.new_parser
 
-local scoop_parser = parser(
-	{
-		{'install', 'info', 'depends', 'virustotal'} ..parser({Apps.get_known}):loop(0),
-		{'uninstall', 'cleanup', 'update', 'prefix', 'reset'} ..parser({Apps.get_local}):loop(0),
-		'alias' ..parser({'add', 'list', 'rm'}),
-		'bucket' ..parser({'add' ..parser({Buckets.get_known}), 'list', 'known', 'rm' ..parser({Buckets.get_local})}),
-		'cache',
-		'checkup',
-		'config',
-		'create',
-		'export',
-		'help',
-		'home',
-		'list',
-		'search',
-		'status',
-		'which'
-	}
-)
+local boolean_parser = parser({'true', 'false'})
 
-local help_parser = parser(
-	{
-        'help' .. parser(scoop_parser:flatten_argument(1))
-	}
-)
+local apps_known_parser = parser({Apps.get_known})
+local apps_local_parser = parser({Apps.get_local})
+
+local bucket_known_parser = parser({Buckets.get_known})
+local bucket_local_parser = parser({Buckets.get_local})
+
+local config_parser = parser({
+	'MSIEXTRACT_USE_LESSMSI' ..boolean_parser,
+	'aria2-enabled' ..boolean_parser,
+	'aria2-retry-wait',
+	'aria2-split',
+	'aria2-max-connection-per-server',
+	'aria2-min-split-size',
+	'aria2-options',
+	'NO_JUNCTIONS' ..boolean_parser,
+	'show_update_log' ..boolean_parser,
+	'virustotal_api_key',
+	'proxy'
+})
+
+local scoop_parser = parser({
+	{'install', 'info', 'depends', 'virustotal', 'home'} ..apps_known_parser:loop(0),
+	{'uninstall', 'cleanup', 'update', 'prefix', 'reset'} ..apps_local_parser:loop(0),
+	'alias' ..parser({'add', 'list', 'rm'}),
+	'bucket' ..parser({'add' ..bucket_known_parser, 'list', 'known', 'rm' ..bucket_local_parser}),
+	'cache' ..parser({'show', 'rm'} ..parser({get_cache})),
+	'checkup',
+	'config' ..config_parser,
+	'create',
+	'export',
+	'list',
+	'search',
+	'status',
+	'which'
+})
+
+local help_parser = parser({
+	'help' ..parser(scoop_parser:flatten_argument(1))
+})
 
 clink.arg.register_parser('scoop', scoop_parser)
 clink.arg.register_parser('scoop', help_parser)
