@@ -1,4 +1,4 @@
-local scoop_dir = clink.get_env('HOME')..'/scoop'
+local scoop_dir = os.getenv('HOME')..'/scoop'
 
 local function trim_extensions (apps)
 	for k, v in pairs(apps) do
