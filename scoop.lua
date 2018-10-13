@@ -1,4 +1,9 @@
-local scoop_dir = os.getenv('HOME')..'/scoop'
+local scoop_dir = os.getenv('SCOOP')
+if not scoop_dir then
+	scoop_dir = os.getenv('USERPROFILE')..'/scoop'
+end
+local scoop_global = os.getenv('SCOOP_GLOBAL')
+
 
 local function trim_extensions (apps)
 	for k, v in pairs(apps) do
@@ -15,11 +20,16 @@ local function find_dirs (path)
 	return dirs
 end
 
-local function get_cache ()
-	cache = clink.find_files(scoop_dir..'/cache/*')
+local function find_files (path)
+	files = clink.find_files(path)
 	-- Remove .. and . from table of directories
-	table.remove(cache, 1)
-	table.remove(cache, 1)
+	table.remove(dirs, 1)
+	table.remove(dirs, 1)
+	return files
+end
+
+local function get_cache ()
+	cache = find_files(scoop_dir..'/cache/*')
 	for i, name in pairs(cache) do
 		cache[i] = string.sub(name, 0, string.find(name, "#") - 1)
 	end
@@ -46,8 +56,14 @@ end
 
 local Apps = {}
 
-function Apps.get_local ()
-	return find_dirs(scoop_dir..'/apps/*')
+function Apps.get_installed ()
+	installed = find_dirs(scoop_dir..'/apps/*')
+	if scoop_global then 
+		for _, dir in pairs(find_dirs(scoop_global..'/*')) do
+			table.insert(installed, dir)
+		end
+	end
+	return installed
 end
 
 function Apps.get_known ()
@@ -63,12 +79,7 @@ end
 local parser = clink.arg.new_parser
 
 local boolean_parser = parser({'true', 'false'})
-
-local apps_known_parser = parser({Apps.get_known})
-local apps_local_parser = parser({Apps.get_local})
-
-local bucket_known_parser = parser({Buckets.get_known})
-local bucket_local_parser = parser({Buckets.get_local})
+local architecture_parser = parser({'32bit', '64bit'})
 
 local config_parser = parser({
 	'MSIEXTRACT_USE_LESSMSI' ..boolean_parser,
@@ -85,18 +96,42 @@ local config_parser = parser({
 })
 
 local scoop_parser = parser({
-	{'install', 'info', 'depends', 'virustotal', 'home'} ..apps_known_parser:loop(0),
-	{'uninstall', 'cleanup', 'update', 'prefix', 'reset'} ..apps_local_parser:loop(0),
-	'alias' ..parser({'add', 'list', 'rm'}),
-	'bucket' ..parser({'add' ..bucket_known_parser, 'list', 'known', 'rm' ..bucket_local_parser}),
+	{'info', 'depends', 'home'} ..parser({Apps.get_known}),
+	'alias' ..parser({'add', 'list' ..parser({'-v', '--verbose'}), 'rm'}),
+	'bucket' ..parser({'add' ..parser({Buckets.get_known}), 'list', 'known', 'rm' ..parser({Buckets.get_local})}),
 	'cache' ..parser({'show', 'rm'} ..parser({get_cache})),
 	'checkup',
+	'cleanup' ..parser({Apps.get_installed},
+		'-g', '--global'):loop(1),
 	'config' ..config_parser,
 	'create',
 	'export',
 	'list',
+	'install' ..parser({Apps.get_known}, 
+		'-g', '--global',
+		'-i', '--independent',
+		'-k', '--no-cache',
+		'-s', '--skip',
+		'-a' ..architecture_parser, '--arch' ..architecture_parser
+		):loop(1),
+	'prefix' ..parser({Apps.get_installed}),
+	'reset' ..parser({Apps.get_installed}):loop(1),
 	'search',
 	'status',
+	'uninstall' ..parser({Apps.get_installed},
+		'-g', '--global',
+		'-p', '--purge'):loop(1),
+	'update' ..parser({Apps.get_installed},
+		'-g', '--global',
+		'-f', '--force',
+		'-i', '--independent',
+		'-k', '--no-cache',
+		'-s', '--skip',
+		'-q', '--quite'):loop(1),
+	'virustotal' ..parser({Apps.get_known},
+		'-a' ..architecture_parser, '--arch' ..architecture_parser,
+		'-s', '--scan',
+		'-n', '--no-depends'):loop(1),
 	'which'
 })
 
