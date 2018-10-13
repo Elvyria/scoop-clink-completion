@@ -14,5 +14,3 @@ Place it in your clink or clink profile folder.
 
 ### For [cmder](http://cmder.net/)
 Place it in `%CMDER_ROOT%/config` folder.
-
-**Note:** If your scoop folder is different from `%HOME%/scoop` adjust first line of script `scoop_dir = "C:/../../scoop"`.
