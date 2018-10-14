@@ -23,8 +23,8 @@ end
 local function find_files (path)
 	files = clink.find_files(path)
 	-- Remove .. and . from table of directories
-	table.remove(dirs, 1)
-	table.remove(dirs, 1)
+	table.remove(files, 1)
+	table.remove(files, 1)
 	return files
 end
 
