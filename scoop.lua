@@ -59,7 +59,7 @@ local Apps = {}
 function Apps.get_installed ()
 	installed = find_dirs(scoop_dir..'/apps/*')
 	if scoop_global then 
-		for _, dir in pairs(find_dirs(scoop_global..'/*')) do
+		for _, dir in pairs(find_dirs(scoop_global..'/apps/*')) do
 			table.insert(installed, dir)
 		end
 	end
