@@ -72,6 +72,9 @@ function Apps.get_known ()
 		for u, app in pairs(trim_extensions(clink.find_files(scoop_dir..'/buckets/'..dir..'/*.json'))) do
 			table.insert(apps, app)
 		end
+		for u, app in pairs(trim_extensions(clink.find_files(scoop_dir..'/buckets/'..dir..'/bucket/*.json'))) do
+			table.insert(apps, app)
+		end
 	end
 	return apps
 end
