@@ -22,7 +22,7 @@ end
 
 local function find_files (path)
 	files = clink.find_files(path)
-	-- Remove .. and . from table of directories
+	-- Remove .. and . from table of files
 	table.remove(files, 1)
 	table.remove(files, 1)
 	return files
@@ -31,7 +31,8 @@ end
 local function get_cache ()
 	cache = find_files(scoop_dir..'/cache/*')
 	for i, name in pairs(cache) do
-		cache[i] = string.sub(name, 0, string.find(name, "#") - 1)
+		signPos = string.find(name, "#")
+		cache[i] = signPos and string.sub(name, 0, signPos - 1) or nil
 	end
 	return cache
 end
@@ -58,7 +59,7 @@ local Apps = {}
 
 function Apps.get_installed ()
 	installed = find_dirs(scoop_dir..'/apps/*')
-	if scoop_global then 
+	if scoop_global then
 		for _, dir in pairs(find_dirs(scoop_global..'/apps/*')) do
 			table.insert(installed, dir)
 		end
@@ -110,7 +111,7 @@ local scoop_parser = parser({
 	'create',
 	'export',
 	'list',
-	'install' ..parser({Apps.get_known}, 
+	'install' ..parser({Apps.get_known},
 		'-g', '--global',
 		'-i', '--independent',
 		'-k', '--no-cache',
