@@ -37,44 +37,44 @@ local function get_cache ()
 	return cache
 end
 
-local Buckets = {}
-
-function Buckets.get_local ()
+function get_installed_buckets ()
 	return find_dirs(scoop_dir..'/buckets/*')
 end
 
-function Buckets.get_known ()
+function get_known_buckets ()
 	json = io.open(scoop_dir..'/apps/scoop/current/buckets.json')
 	known = {}
+	i = 0
 	for line in json:lines() do
-		bucket = string.match(line, '\"(.-)\"')
-		if bucket then
-			table.insert(known, bucket)
-		end
+		known[i] = string.match(line, '\"(.-)\"')
+		i = i + 1
 	end
 	return known
 end
 
-local Apps = {}
-
-function Apps.get_installed ()
+function get_installed_apps ()
 	installed = find_dirs(scoop_dir..'/apps/*')
+	i = #installed
 	if scoop_global then
 		for _, dir in pairs(find_dirs(scoop_global..'/apps/*')) do
-			table.insert(installed, dir)
+			installed[i] = dir
+			i = i + 1
 		end
 	end
 	return installed
 end
 
-function Apps.get_known ()
-	apps = trim_extensions(clink.find_files(scoop_dir..'/apps/scoop/current/bucket/*.json'))
-	for _, dir in pairs(Buckets.get_local()) do
+function get_known_apps ()
+	apps = {}
+	i = 0
+	for _, dir in pairs(get_installed_buckets()) do
 		for u, app in pairs(trim_extensions(clink.find_files(scoop_dir..'/buckets/'..dir..'/*.json'))) do
-			table.insert(apps, app)
+			apps[i] = app
+			i = i + 1
 		end
 		for u, app in pairs(trim_extensions(clink.find_files(scoop_dir..'/buckets/'..dir..'/bucket/*.json'))) do
-			table.insert(apps, app)
+			apps[i] = app
+			i = i + 1
 		end
 	end
 	return apps
@@ -100,39 +100,39 @@ local config_parser = parser({
 })
 
 local scoop_parser = parser({
-	{'info', 'depends', 'home'} ..parser({Apps.get_known}),
+	{'info', 'depends', 'home'} ..parser({get_known_apps}),
 	'alias' ..parser({'add', 'list' ..parser({'-v', '--verbose'}), 'rm'}),
-	'bucket' ..parser({'add' ..parser({Buckets.get_known}), 'list', 'known', 'rm' ..parser({Buckets.get_local})}),
+	'bucket' ..parser({'add' ..parser({get_known_buckets}), 'list', 'known', 'rm' ..parser({get_installed_buckets})}),
 	'cache' ..parser({'show', 'rm'} ..parser({get_cache})),
 	'checkup',
-	'cleanup' ..parser({Apps.get_installed},
+	'cleanup' ..parser({get_installed_apps},
 		'-g', '--global'):loop(1),
 	'config' ..config_parser,
 	'create',
 	'export',
 	'list',
-	'install' ..parser({Apps.get_known},
+	'install' ..parser({get_known_apps},
 		'-g', '--global',
 		'-i', '--independent',
 		'-k', '--no-cache',
 		'-s', '--skip',
 		'-a' ..architecture_parser, '--arch' ..architecture_parser
 		):loop(1),
-	'prefix' ..parser({Apps.get_installed}),
-	'reset' ..parser({Apps.get_installed}):loop(1),
+	'prefix' ..parser({get_installed_apps}),
+	'reset' ..parser({get_installed_apps}):loop(1),
 	'search',
 	'status',
-	'uninstall' ..parser({Apps.get_installed},
+	'uninstall' ..parser({get_installed_apps},
 		'-g', '--global',
 		'-p', '--purge'):loop(1),
-	'update' ..parser({Apps.get_installed},
+	'update' ..parser({get_installed_apps},
 		'-g', '--global',
 		'-f', '--force',
 		'-i', '--independent',
 		'-k', '--no-cache',
 		'-s', '--skip',
 		'-q', '--quite'):loop(1),
-	'virustotal' ..parser({Apps.get_known},
+	'virustotal' ..parser({get_known_apps},
 		'-a' ..architecture_parser, '--arch' ..architecture_parser,
 		'-s', '--scan',
 		'-n', '--no-depends'):loop(1),
