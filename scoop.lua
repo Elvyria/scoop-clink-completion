@@ -122,6 +122,8 @@ local scoop_parser = parser({
 	'reset' ..parser({get_installed_apps}):loop(1),
 	'search',
 	'status',
+	'hold' ..parser({get_installed_apps}),
+	'unhold' ..parser({get_installed_apps}),
 	'uninstall' ..parser({get_installed_apps},
 		'-g', '--global',
 		'-p', '--purge'):loop(1),
