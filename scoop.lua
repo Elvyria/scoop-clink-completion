@@ -7,7 +7,7 @@ local scoop_global = os.getenv('SCOOP_GLOBAL')
 
 local function trim_extensions (apps)
 	for k, v in pairs(apps) do
-		apps[k] = string.match(v, '[%w-]*')
+		apps[k] = string.match(v, '(.+)%.')
 	end
 	return apps
 end
