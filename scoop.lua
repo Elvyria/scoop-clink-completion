@@ -1,9 +1,14 @@
 local scoop_dir = os.getenv('SCOOP')
+
 if not scoop_dir then
 	scoop_dir = os.getenv('USERPROFILE')..'/scoop'
 end
+
 local scoop_global = os.getenv('SCOOP_GLOBAL')
 
+if not scoop_global then
+	scoop_global = os.getenv('ProgramData')..'/scoop'
+end
 
 local function trim_extensions (apps)
 	for k, v in pairs(apps) do
@@ -86,13 +91,21 @@ local boolean_parser = parser({'true', 'false'})
 local architecture_parser = parser({'32bit', '64bit'})
 
 local config_parser = parser({
+	'7ZIPEXTRACT_USE_EXTERNAL' ..boolean_parser,
 	'MSIEXTRACT_USE_LESSMSI' ..boolean_parser,
 	'aria2-enabled' ..boolean_parser,
 	'aria2-retry-wait',
 	'aria2-split',
 	'aria2-max-connection-per-server',
 	'aria2-min-split-size',
+	'aria2-retry-wait',
 	'aria2-options',
+	'debug' ..boolean_parser,
+	'rootPath',
+	'globalPath',
+	'default-architecture' ..architecture_parser,
+	'cachePath',
+	'shim' ..parser({'71', 'kiennq', 'default'}),
 	'NO_JUNCTIONS' ..boolean_parser,
 	'show_update_log' ..boolean_parser,
 	'virustotal_api_key',
@@ -119,11 +132,9 @@ local scoop_parser = parser({
 		'-a' ..architecture_parser, '--arch' ..architecture_parser
 		):loop(1),
 	'prefix' ..parser({get_installed_apps}),
-	'reset' ..parser({get_installed_apps}):loop(1),
+	{'reset', 'hold', 'unhold'} ..parser({get_installed_apps}):loop(1),
 	'search',
 	'status',
-	'hold' ..parser({get_installed_apps}),
-	'unhold' ..parser({get_installed_apps}),
 	'uninstall' ..parser({get_installed_apps},
 		'-g', '--global',
 		'-p', '--purge'):loop(1),
