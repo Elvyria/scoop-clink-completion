@@ -18,19 +18,11 @@ local function trim_extensions (apps)
 end
 
 local function find_dirs (path)
-	dirs = clink.find_dirs(path)
-	-- Remove .. and . from table of directories
-	table.remove(dirs, 1)
-	table.remove(dirs, 1)
-	return dirs
+	return clink.find_dirs(path)
 end
 
 local function find_files (path)
-	files = clink.find_files(path)
-	-- Remove .. and . from table of files
-	table.remove(files, 1)
-	table.remove(files, 1)
-	return files
+	return clink.find_files(path)
 end
 
 local function get_cache ()

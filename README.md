@@ -12,7 +12,7 @@ It's not better in amount of provided suggestions nor in startup time/performanc
 ## Installation
 Download scoop.lua
 
-### For [clink](https://mridgers.github.io/clink/)
+### For [clink](https://github.com/chrisant996/clink)
 Place it in your clink or clink profile folder.
 
 ### For [cmder](http://cmder.net/)
